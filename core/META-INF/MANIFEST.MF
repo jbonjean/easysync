@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: EasySync Core Plugin
+Bundle-SymbolicName: info.bonjean.eclipse.easysync.core;singleton:=true
+Bundle-Version: 0.0.1.qualifier
+Bundle-Activator: info.bonjean.eclipse.easysync.core.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.ui.ide,
+ org.eclipse.core.filesystem
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

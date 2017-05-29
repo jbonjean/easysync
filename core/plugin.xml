@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            name="Sync"
+            id="category.sync.id">
+      </category>
+      <command
+            name="Save"
+            categoryId="category.sync.id"
+            id="command.sync.save.id">
+      </command>
+      <command
+            name="Load"
+            categoryId="category.sync.id"
+            id="command.sync.load.id">
+      </command>
+      <command
+            name="Edit Configuration"
+            categoryId="category.sync.id"
+            id="command.sync.edit_config.id">
+      </command>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            commandId="command.sync.save.id"
+            class="info.bonjean.eclipse.easysync.core.SyncHandler">
+      </handler>
+      <handler
+            commandId="command.sync.load.id"
+            class="info.bonjean.eclipse.easysync.core.SyncHandler">
+      </handler>
+      <handler
+            commandId="command.sync.edit_config.id"
+            class="info.bonjean.eclipse.easysync.core.SyncHandler">
+      </handler>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu
+               id="menu.sync.id"
+               label="Sync">
+            <command
+                  commandId="command.sync.save.id"
+                  mnemonic="S"
+                  id="command.sync.save.menu.memonic.id">
+            </command>
+            <command
+                  commandId="command.sync.load.id"
+                  mnemonic="L"
+                  id="command.sync.load.menu.memonic.id">
+            </command>
+            <command
+                  commandId="command.sync.edit_config.id"
+                  mnemonic="C"
+                  id="command.sync.edit_config.menu.memonic.id">
+            </command>
+         </menu>
+      </menuContribution>
+   </extension>
+</plugin>
