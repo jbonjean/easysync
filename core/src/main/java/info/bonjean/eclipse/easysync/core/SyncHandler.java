@@ -352,7 +352,7 @@ public class SyncHandler extends AbstractHandler {
 		Map<String, Map<String, String>> preferencesConfig = null;
 		try {
 			switch (event.getCommand().getId()) {
-			case "command.sync.save.id":
+			case "command.sync.export.id":
 
 				// load preferences configuration (for exclusions, ...)
 				preferencesConfig = loadPreferencesConfig();
@@ -367,7 +367,7 @@ public class SyncHandler extends AbstractHandler {
 						"Preferences successfully saved to " + PREFS_FILENAME);
 				break;
 
-			case "command.sync.load.id":
+			case "command.sync.import.id":
 
 				// check if the properties file exists
 				if (!new File(PREFS_FILENAME).exists()) {

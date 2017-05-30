@@ -8,14 +8,14 @@
             id="category.sync.id">
       </category>
       <command
-            name="Save"
+            name="Export"
             categoryId="category.sync.id"
-            id="command.sync.save.id">
+            id="command.sync.export.id">
       </command>
       <command
-            name="Load"
+            name="Import"
             categoryId="category.sync.id"
-            id="command.sync.load.id">
+            id="command.sync.import.id">
       </command>
       <command
             name="Edit Configuration"
@@ -27,11 +27,11 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            commandId="command.sync.save.id"
+            commandId="command.sync.export.id"
             class="info.bonjean.eclipse.easysync.core.SyncHandler">
       </handler>
       <handler
-            commandId="command.sync.load.id"
+            commandId="command.sync.import.id"
             class="info.bonjean.eclipse.easysync.core.SyncHandler">
       </handler>
       <handler
@@ -49,14 +49,14 @@
                id="menu.sync.id"
                label="Sync">
             <command
-                  commandId="command.sync.save.id"
+                  commandId="command.sync.export.id"
                   mnemonic="S"
-                  id="command.sync.save.menu.memonic.id">
+                  id="command.sync.export.menu.memonic.id">
             </command>
             <command
-                  commandId="command.sync.load.id"
+                  commandId="command.sync.import.id"
                   mnemonic="L"
-                  id="command.sync.load.menu.memonic.id">
+                  id="command.sync.import.menu.memonic.id">
             </command>
             <command
                   commandId="command.sync.edit_config.id"
