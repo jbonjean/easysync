@@ -167,125 +167,125 @@ public class SyncHandler extends AbstractHandler {
 		return properties;
 	}
 
-	private void savePreferences(Map<String, Map<String, String>> preferencesConfig)
+	private void exportPreferences(Map<String, Map<String, String>> preferencesConfig)
 			throws BackingStoreException, IOException {
 		// read preferences properties from the file
 		// (we want to merge and not replace all the data, different installations can have different plugins)
-		Map<String, Map<String, String>> properties = null;
+		Map<String, Map<String, String>> exportPreferences = null;
 		if (new File(PREFS_FILENAME).exists())
-			properties = readProperties(PREFS_FILENAME);
+			exportPreferences = readProperties(PREFS_FILENAME);
 		else
-			properties = new TreeMap<>();
+			exportPreferences = new TreeMap<>();
 
-		Map<String, Map<String, String>> excludedProperties = new TreeMap<>();
+		Map<String, Map<String, String>> excludedPreferences = new TreeMap<>();
 
 		// eclipse preferences are stored in nodes, get the root node so we can iterate on children
-		Preferences nodesKeys = PreferencesService.getDefault().getRootNode().node(InstanceScope.SCOPE);
+		Preferences preferences = PreferencesService.getDefault().getRootNode().node(InstanceScope.SCOPE);
 
-		for (String nodeKey : nodesKeys.childrenNames()) {
+		for (String preferencesNodeKey : preferences.childrenNames()) {
 
 			// get the current node
-			IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(nodeKey);
-			if (prefs == null)
+			IEclipsePreferences preferencesNode = InstanceScope.INSTANCE.getNode(preferencesNodeKey);
+			if (preferencesNode == null)
 				continue;
 
 			// load configuration for this node
-			Map<String, String> nodeConfig = preferencesConfig.get(nodeKey);
-			List<String> excludeList = getKeysExclusionList(nodeConfig);
-			Pattern excludePattern = getKeysExclusionPattern(nodeConfig);
+			Map<String, String> preferenceNodeConfig = preferencesConfig.get(preferencesNodeKey);
+			List<String> excludeList = getKeysExclusionList(preferenceNodeConfig);
+			Pattern excludePattern = getKeysExclusionPattern(preferenceNodeConfig);
 
-			// get the node preference keys
-			String[] prefKeys = prefs.keys();
-			if (prefKeys.length == 0)
+			// get the node preference keys and skip if empty
+			String[] preferencesNodeKeys = preferencesNode.keys();
+			if (preferencesNodeKeys.length == 0)
 				continue;
 
-			Map<String, String> nodeProperties = null;
-			if (properties.containsKey(nodeKey))
-				nodeProperties = properties.get(nodeKey);
+			Map<String, String> exportPreferencesNode = null;
+			if (exportPreferences.containsKey(preferencesNodeKey))
+				exportPreferencesNode = exportPreferences.get(preferencesNodeKey);
 			else
-				nodeProperties = new TreeMap<>();
+				exportPreferencesNode = new TreeMap<>();
 
-			Map<String, String> nodeExcludedProperties = new TreeMap<>();
+			Map<String, String> excludedPreferencesNode = new TreeMap<>();
 
 			// read the keys/values and store them in a map
-			for (String key : prefs.keys()) {
+			for (String key : preferencesNode.keys()) {
 
 				// check the key against the exclusion list
 				if (excludeList != null && excludeList.contains(key)) {
-					nodeExcludedProperties.put(key, prefs.get(key, null));
-					nodeProperties.remove(key);
+					excludedPreferencesNode.put(key, preferencesNode.get(key, null));
+					exportPreferencesNode.remove(key);
 					continue;
 				}
 
 				// check the key against the exclusion pattern
 				if (excludePattern != null && excludePattern.matcher(key).matches()) {
-					nodeExcludedProperties.put(key, prefs.get(key, null));
-					nodeProperties.remove(key);
+					excludedPreferencesNode.put(key, preferencesNode.get(key, null));
+					exportPreferencesNode.remove(key);
 					continue;
 				}
 
 				// all good, we can store this preference
-				nodeProperties.put(key, prefs.get(key, null));
+				exportPreferencesNode.put(key, preferencesNode.get(key, null));
 			}
 
 			// store the node map in the top level map
-			if (!nodeProperties.isEmpty())
-				properties.put(nodeKey, nodeProperties);
+			if (!exportPreferencesNode.isEmpty())
+				exportPreferences.put(preferencesNodeKey, exportPreferencesNode);
 
 			// same for excluded properties
-			if (!nodeExcludedProperties.isEmpty())
-				excludedProperties.put(nodeKey, nodeExcludedProperties);
+			if (!excludedPreferencesNode.isEmpty())
+				excludedPreferences.put(preferencesNodeKey, excludedPreferencesNode);
 		}
 
 		// synchronize the configuration by creating the new placeholder if there are
-		for (String nodeKey : properties.keySet()) {
-			Map<String, String> nodeConfig = preferencesConfig.get(nodeKey);
+		for (String exportPreferencesNodeKey : exportPreferences.keySet()) {
+			Map<String, String> preferencesNodeConfig = preferencesConfig.get(exportPreferencesNodeKey);
 
 			// if the section does not exist, create it
-			if (nodeConfig == null) {
-				nodeConfig = new TreeMap<>();
-				preferencesConfig.put(nodeKey, nodeConfig);
+			if (preferencesNodeConfig == null) {
+				preferencesNodeConfig = new TreeMap<>();
+				preferencesConfig.put(exportPreferencesNodeKey, preferencesNodeConfig);
 			}
 
 			// create the keys with default value, so it will be easier to configure later
-			if (!nodeConfig.containsKey(PREFS_CONFIG_EXCLUDE_PATTERN_KEY))
-				nodeConfig.put(PREFS_CONFIG_EXCLUDE_PATTERN_KEY, "");
-			if (!nodeConfig.containsKey(PREFS_CONFIG_EXCLUDE_LIST_KEY))
-				nodeConfig.put(PREFS_CONFIG_EXCLUDE_LIST_KEY, "");
+			if (!preferencesNodeConfig.containsKey(PREFS_CONFIG_EXCLUDE_PATTERN_KEY))
+				preferencesNodeConfig.put(PREFS_CONFIG_EXCLUDE_PATTERN_KEY, "");
+			if (!preferencesNodeConfig.containsKey(PREFS_CONFIG_EXCLUDE_LIST_KEY))
+				preferencesNodeConfig.put(PREFS_CONFIG_EXCLUDE_LIST_KEY, "");
 		}
 
 		// write all the properties to the file
-		writeProperties(properties, PREFS_FILENAME);
+		writeProperties(exportPreferences, PREFS_FILENAME);
 
 		// write all the excluded properties to the file
-		writeProperties(excludedProperties, PREFS_EXCLUDED_FILENAME);
+		writeProperties(excludedPreferences, PREFS_EXCLUDED_FILENAME);
 	}
 
-	private void loadPreferences(Map<String, Map<String, String>> preferencesConfig)
+	private void importPreferences(Map<String, Map<String, String>> preferencesConfig)
 			throws IOException, BackingStoreException {
 		// read preferences properties from the file
-		Map<String, Map<String, String>> properties = readProperties(PREFS_FILENAME);
+		Map<String, Map<String, String>> exportedPreferences = readProperties(PREFS_FILENAME);
 
 		// finally we clear preference nodes that were not in the properties
-		Preferences nodesKeys = PreferencesService.getDefault().getRootNode().node(InstanceScope.SCOPE);
-		for (String nodeKey : nodesKeys.childrenNames()) {
-			IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(nodeKey);
-			if (prefs == null)
+		Preferences preferences = PreferencesService.getDefault().getRootNode().node(InstanceScope.SCOPE);
+		for (String preferencesNodeKey : preferences.childrenNames()) {
+			IEclipsePreferences preferencesNode = InstanceScope.INSTANCE.getNode(preferencesNodeKey);
+			if (preferencesNode == null)
 				continue;
 
-			if (!properties.containsKey(nodeKey))
+			if (!exportedPreferences.containsKey(preferencesNodeKey))
 				continue;
 
 			// load configuration for this node
-			Map<String, String> nodeConfig = preferencesConfig.get(nodeKey);
-			List<String> excludeList = getKeysExclusionList(nodeConfig);
-			Pattern excludePattern = getKeysExclusionPattern(nodeConfig);
+			Map<String, String> preferencesNodeConfig = preferencesConfig.get(preferencesNodeKey);
+			List<String> excludeList = getKeysExclusionList(preferencesNodeConfig);
+			Pattern excludePattern = getKeysExclusionPattern(preferencesNodeConfig);
 
 			// load stored data for this node
-			Map<String, String> nodePrefs = properties.get(nodeKey);
+			Map<String, String> exportedPreferencesNode = exportedPreferences.get(preferencesNodeKey);
 
 			// inspect preferences node keys
-			for (String key : prefs.keys()) {
+			for (String key : preferencesNode.keys()) {
 
 				// check the key against the exclusion list
 				if (excludeList != null && excludeList.contains(key))
@@ -296,10 +296,10 @@ public class SyncHandler extends AbstractHandler {
 					continue;
 
 				// update the preference if we have a value, clear it otherwise
-				if (nodePrefs.containsKey(key))
-					prefs.put(key, nodePrefs.get(key));
+				if (exportedPreferencesNode.containsKey(key))
+					preferencesNode.put(key, exportedPreferencesNode.get(key));
 				else
-					prefs.remove(key);
+					preferencesNode.remove(key);
 			}
 		}
 	}
@@ -358,7 +358,7 @@ public class SyncHandler extends AbstractHandler {
 				preferencesConfig = loadPreferencesConfig();
 
 				// extract preferences from Eclipse and save to filesystem
-				savePreferences(preferencesConfig);
+				exportPreferences(preferencesConfig);
 
 				// write the preferences configuration to the file (new sections may have been generated)
 				savePreferencesConfig(preferencesConfig);
@@ -385,7 +385,7 @@ public class SyncHandler extends AbstractHandler {
 				preferencesConfig = loadPreferencesConfig();
 
 				// load preferences from the filesystem
-				loadPreferences(preferencesConfig);
+				importPreferences(preferencesConfig);
 
 				MessageDialog.openInformation(window.getShell(), "Eclipse Sync",
 						"Preferences successfully loaded from " + PREFS_FILENAME);
