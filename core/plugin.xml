@@ -22,6 +22,11 @@
             categoryId="category.sync.id"
             id="command.sync.edit_config.id">
       </command>
+      <command
+            name="Reset to default"
+            categoryId="category.sync.id"
+            id="command.sync.reset.id">
+      </command>
    </extension>
 
    <extension
@@ -36,6 +41,10 @@
       </handler>
       <handler
             commandId="command.sync.edit_config.id"
+            class="info.bonjean.eclipse.easysync.core.SyncHandler">
+      </handler>
+      <handler
+            commandId="command.sync.reset.id"
             class="info.bonjean.eclipse.easysync.core.SyncHandler">
       </handler>
    </extension>
@@ -62,6 +71,11 @@
                   commandId="command.sync.edit_config.id"
                   mnemonic="C"
                   id="command.sync.edit_config.menu.memonic.id">
+            </command>
+            <command
+                  commandId="command.sync.reset.id"
+                  mnemonic="R"
+                  id="command.sync.reset.menu.memonic.id">
             </command>
          </menu>
       </menuContribution>

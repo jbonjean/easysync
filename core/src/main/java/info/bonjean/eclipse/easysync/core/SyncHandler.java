@@ -170,7 +170,8 @@ public class SyncHandler extends AbstractHandler {
 	private void exportPreferences(Map<String, Map<String, String>> preferencesConfig)
 			throws BackingStoreException, IOException {
 		// read preferences properties from the file
-		// (we want to merge and not replace all the data, different installations can have different plugins)
+		// (we want to merge and not replace all the data, different installations can
+		// have different plugins)
 		Map<String, Map<String, String>> exportPreferences = null;
 		if (new File(PREFS_FILENAME).exists())
 			exportPreferences = readProperties(PREFS_FILENAME);
@@ -179,7 +180,8 @@ public class SyncHandler extends AbstractHandler {
 
 		Map<String, Map<String, String>> excludedPreferences = new TreeMap<>();
 
-		// eclipse preferences are stored in nodes, get the root node so we can iterate on children
+		// eclipse preferences are stored in nodes, get the root node so we can iterate
+		// on children
 		Preferences preferences = PreferencesService.getDefault().getRootNode().node(InstanceScope.SCOPE);
 
 		for (String preferencesNodeKey : preferences.childrenNames()) {
@@ -261,6 +263,29 @@ public class SyncHandler extends AbstractHandler {
 		writeProperties(excludedPreferences, PREFS_EXCLUDED_FILENAME);
 	}
 
+	private void resetDefaultPreferences() throws BackingStoreException {
+		// while all preferences
+		Preferences preferences = PreferencesService.getDefault().getRootNode().node(InstanceScope.SCOPE);
+
+		for (String preferencesNodeKey : preferences.childrenNames()) {
+			// get the current node
+			IEclipsePreferences preferencesNode = InstanceScope.INSTANCE.getNode(preferencesNodeKey);
+			if (preferencesNode == null)
+				continue;
+
+			// clear associated preferences
+			preferencesNode.clear();
+		}
+
+		// save to disk
+		preferences.flush();
+
+		// delete preferences file
+		File file = new File(PREFS_FILENAME);
+		if (file.exists())
+			file.delete();
+	}
+
 	private void importPreferences(Map<String, Map<String, String>> preferencesConfig)
 			throws IOException, BackingStoreException {
 		// read preferences properties from the file
@@ -302,6 +327,9 @@ public class SyncHandler extends AbstractHandler {
 					preferencesNode.remove(key);
 			}
 		}
+
+		// save to disk
+		preferences.flush();
 	}
 
 	private void savePreferencesConfig(Map<String, Map<String, String>> preferencesConfig) throws IOException {
@@ -360,7 +388,8 @@ public class SyncHandler extends AbstractHandler {
 				// extract preferences from Eclipse and save to filesystem
 				exportPreferences(preferencesConfig);
 
-				// write the preferences configuration to the file (new sections may have been generated)
+				// write the preferences configuration to the file (new sections may have been
+				// generated)
 				savePreferencesConfig(preferencesConfig);
 
 				MessageDialog.openInformation(window.getShell(), "Eclipse Sync",
@@ -378,7 +407,7 @@ public class SyncHandler extends AbstractHandler {
 
 				// ask for confirmation before proceeding
 				if (!MessageDialog.openConfirm(window.getShell(), "Eclipse Sync",
-						"Eclipse preferences will be overridden by sync data. Do you want to continue?"))
+						"Eclipse preferences will be overridden by sync data." + "\nDo you want to continue?"))
 					return null;
 
 				// load preferences configuration (for exclusions, ...)
@@ -388,7 +417,11 @@ public class SyncHandler extends AbstractHandler {
 				importPreferences(preferencesConfig);
 
 				MessageDialog.openInformation(window.getShell(), "Eclipse Sync",
-						"Preferences successfully loaded from " + PREFS_FILENAME);
+						"Preferences successfully loaded from " + PREFS_FILENAME + ", Eclipse will now be restarted");
+
+				// restart Eclipse
+				PlatformUI.getWorkbench().restart(true);
+
 				break;
 
 			case "command.sync.edit_config.id":
@@ -397,6 +430,23 @@ public class SyncHandler extends AbstractHandler {
 				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				IFileStore fileStore = EFS.getLocalFileSystem().getStore(new File(PREFS_CONFIG_FILENAME).toURI());
 				IDE.openInternalEditorOnFileStore(page, fileStore);
+				break;
+
+			case "command.sync.reset.id":
+
+				// ask for confirmation before proceeding
+				if (!MessageDialog.openConfirm(window.getShell(), "Eclipse Sync",
+						"Eclipse preferences and sync data will be reset to default (wiped)."
+								+ "You may also encounter errors during the process, this is expected."
+								+ "\nEclipse will be restarted." + "\nDo you want to continue?"))
+					return null;
+
+				// reset preferences to default
+				resetDefaultPreferences();
+
+				// restart Eclipse
+				PlatformUI.getWorkbench().restart(true);
+
 				break;
 
 			default:

@@ -52,6 +52,14 @@ customize:
 
 Both methods serve the same purpose and can be used together.
 
+## Development
+
+* Create a local Eclipse update site:
+```
+mvn clean package
+```
+The repository will be created at `site/target/repository/`.
+
 ## License
 
 EasySync is licensed under the Apache License, Version 2.0. See LICENSE for the full license text.
