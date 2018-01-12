@@ -28,6 +28,7 @@ import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -309,27 +310,28 @@ public class SyncHandler extends AbstractHandler {
 			// load stored data for this node
 			Map<String, String> exportedPreferencesNode = exportedPreferences.get(preferencesNodeKey);
 
-			// inspect preferences node keys
+			// set the preferences
+			for (Entry<String, String> exportedPreferencesNodeEntry : exportedPreferencesNode.entrySet()) {
+				String key = exportedPreferencesNodeEntry.getKey();
+				if (isExcludedKey(key, excludeList, excludePattern))
+					continue;
+				preferencesNode.put(key, exportedPreferencesNodeEntry.getValue());
+			}
+
+			// clear unset preferences
 			for (String key : preferencesNode.keys()) {
-
-				// check the key against the exclusion list
-				if (excludeList != null && excludeList.contains(key))
+				if (isExcludedKey(key, excludeList, excludePattern))
 					continue;
-
-				// check the key against the exclusion pattern
-				if (excludePattern != null && excludePattern.matcher(key).matches())
-					continue;
-
-				// update the preference if we have a value, clear it otherwise
-				if (exportedPreferencesNode.containsKey(key))
-					preferencesNode.put(key, exportedPreferencesNode.get(key));
-				else
+				if (!exportedPreferencesNode.containsKey(key))
 					preferencesNode.remove(key);
 			}
 		}
 
 		// save to disk
 		preferences.flush();
+
+		// ensure everything is up-to-date
+		preferences.sync();
 	}
 
 	private void savePreferencesConfig(Map<String, Map<String, String>> preferencesConfig) throws IOException {
@@ -359,6 +361,18 @@ public class SyncHandler extends AbstractHandler {
 
 		// pre-compile the pattern
 		return Pattern.compile(pattern);
+	}
+
+	private boolean isExcludedKey(String key, List<String> excludeList, Pattern excludePattern) {
+		// check the key against the exclusion list
+		if (excludeList != null && excludeList.contains(key))
+			return true;
+
+		// check the key against the exclusion pattern
+		if (excludePattern != null && excludePattern.matcher(key).matches())
+			return true;
+
+		return false;
 	}
 
 	private Map<String, Map<String, String>> loadPreferencesConfig() throws IOException {
